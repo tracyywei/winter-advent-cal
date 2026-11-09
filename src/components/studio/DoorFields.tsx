@@ -94,7 +94,7 @@ export function DoorFields({ d, set, recipientName }: { d: Draft; set: Change; r
       return (
         <>
           <MediaField kind="image" value={d.imageUrl} onChange={(imageUrl) => set({ imageUrl })} />
-          <Field label="Caption (optional)" hint="Shown handwritten under the polaroid.">
+          <Field label="Caption (optional)" hint="Shown under the polaroid.">
             <input className="st-input" value={d.caption} onChange={(e) => set({ caption: e.target.value })} placeholder="Tahoe, Feb 2024 ⛷️" />
           </Field>
         </>

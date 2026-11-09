@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   title: "Your Advent Village 🎄",
   robots: { index: false, follow: false },
 };
+
+export const viewport: Viewport = { themeColor: "#14153d" };
 
 export default function CalendarPage({ params, searchParams }: PageProps<"/c/[slug]">) {
   return (

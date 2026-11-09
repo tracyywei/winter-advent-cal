@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import CopyLinkButton from "@/components/studio/CopyLinkButton";
 import { NewCalendarForm } from "@/components/studio/forms";
+import MorningTexts from "@/components/studio/MorningTexts";
 import { requireStudio } from "@/lib/auth";
 import { store } from "@/lib/store";
 import { CAL_TZ, CAL_YEAR, TOTAL_DAYS, unlockedThrough } from "@/lib/time";
@@ -89,6 +90,10 @@ async function Dashboard() {
           })}
         </div>
       </section>
+
+      <MorningTexts
+        people={calendars.map((cal, i) => ({ name: cal.recipientName, slug: cal.slug, subscriptions: activity[i].subscriptions }))}
+      />
 
       <section className="st-card">
         <h2>💌 From your people</h2>

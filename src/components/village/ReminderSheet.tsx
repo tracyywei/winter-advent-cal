@@ -52,7 +52,7 @@ export default function ReminderSheet({ api, slug, recipientName, fromName, next
     setError("");
     if (mode === "sms") {
       if (value.replace(/\D/g, "").length !== 10) return setError("That number looks a little short 📱");
-      if (!consent) return setError("Tick the box so the reminders can be sent 💌");
+      if (!consent) return setError(`Tick the box so ${fromName} knows it's okay to text you 💌`);
     } else if (!EMAIL_RE.test(value.trim())) {
       return setError("Hmm, double-check that email ✉️");
     }
@@ -78,7 +78,7 @@ export default function ReminderSheet({ api, slug, recipientName, fromName, next
           <>
             <h3>You&apos;re on the list! 🎄</h3>
             <p>
-              {mode === "sms" ? "Look out for a text" : "Look out for an email"} at 9am PT each morning in December.
+              Look out for {mode === "sms" ? "a text" : "an email"} from {fromName} at 9am PT each morning, Dec 1–25.
             </p>
             <button type="button" className="va-btn big" onClick={onClose}>
               Back to the village
@@ -87,7 +87,9 @@ export default function ReminderSheet({ api, slug, recipientName, fromName, next
         ) : (
           <>
             <h3>🔔 Daily door reminders</h3>
-            <p>Get a little nudge at 9am PT every morning when your next door is ready.</p>
+            <p>
+              {fromName} will send you a little nudge at 9am PT every morning when your next door is ready.
+            </p>
             <div className="va-bubble-from">Here&apos;s what it&apos;ll look like:</div>
             <div className="va-bubble">
               Good morning {recipientName}! Door #{nextDay} on {fromName}&apos;s advent calendar for you is ready 🎄{" "}
@@ -113,7 +115,7 @@ export default function ReminderSheet({ api, slug, recipientName, fromName, next
                 <label className="va-consent">
                   <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
                   <span>
-                    Text me a daily reminder Dec 1–25. Msg &amp; data rates may apply. Reply STOP to opt out.
+                    Yes, {fromName} can text me each morning Dec 1–25. Just let {fromName} know if you&apos;d like to stop.
                   </span>
                 </label>
               )}
