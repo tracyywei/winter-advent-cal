@@ -12,7 +12,8 @@
   overflow-x: hidden;
   color: #fff;
   font-family: var(--font-body), system-ui, sans-serif;
-  background: linear-gradient(180deg, #2d2f73 0, #5a4fa6 22%, #9b7bc9 45%, #e9a9c8 72%, #fbd3d9 100%);
+  /* Deep night at the top for contrast with the white heading, then the same purple-to-pink glow. */
+  background: linear-gradient(180deg, #14153d 0, #23245e 12%, #3d3a8a 26%, #6b5db5 42%, #9b7bc9 56%, #e9a9c8 78%, #fbd3d9 100%);
 }
 .va *, .va *::before, .va *::after { box-sizing: border-box; }
 .va button, .va input { font: inherit; }

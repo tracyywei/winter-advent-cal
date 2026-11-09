@@ -126,7 +126,7 @@ export default function DoorEditor({ calendarId, day, door, recipientName, fromN
               setNote(e.target.value);
               setDirty(true);
             }}
-            placeholder="Shown in handwriting under the surprise"
+            placeholder="Shown in italics under the surprise"
           />
         </label>
       )}

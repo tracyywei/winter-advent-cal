@@ -11,8 +11,8 @@ function toE164(input: string): string | null {
 }
 
 /**
- * Signs the recipient up for daily reminders.
- * TODO (SMS step): send a welcome text through Twilio once the number is approved.
+ * Signs the recipient up for daily reminders. Nothing is sent from here: the studio's
+ * "Morning texts" list feeds the owner's iPhone Shortcut, which sends them from the owner's own phone.
  */
 export async function POST(req: NextRequest, ctx: RouteContext<"/api/c/[slug]/subscribe">) {
   const { slug } = await ctx.params;
