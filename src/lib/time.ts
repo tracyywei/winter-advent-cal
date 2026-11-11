@@ -1,7 +1,14 @@
-/** All doors unlock at midnight Pacific time, for everyone. */
+/**
+ * The tree's calendar: 12 ornaments, opened any time in December, at most one new
+ * one per day (midnight to midnight Pacific). On Dec 31 every ornament unlocks so
+ * late openers can catch up.
+ */
 export const CAL_TZ = "America/Los_Angeles";
 export const CAL_YEAR = 2026;
-export const TOTAL_DAYS = 25;
+export const TOTAL_ORNAMENTS = 12;
+export const ALL_OPEN_DAY = 31;
+
+export type Season = "before" | "december" | "all_open";
 
 function pacificDate(now: Date) {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -14,16 +21,17 @@ function pacificDate(now: Date) {
   return { year: get("year"), month: get("month"), day: get("day") };
 }
 
-/** The highest door number that is open right now (0 before Dec 1, 25 from Christmas on). */
-export function unlockedThrough(now: Date): number {
+/** "2026-12-08": the Pacific calendar day, for "one ornament a day". */
+export function pacificDay(now: Date): string {
   const { year, month, day } = pacificDate(now);
-  if (year > CAL_YEAR) return TOTAL_DAYS;
-  if (year < CAL_YEAR || month < 12) return 0;
-  return Math.min(day, TOTAL_DAYS);
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-export function isUnlocked(day: number, now: Date): boolean {
-  return Number.isInteger(day) && day >= 1 && day <= unlockedThrough(now);
+export function season(now: Date): Season {
+  const { year, month, day } = pacificDate(now);
+  if (year > CAL_YEAR) return "all_open";
+  if (year < CAL_YEAR || month < 12) return "before";
+  return day >= ALL_OPEN_DAY ? "all_open" : "december";
 }
 
 /**

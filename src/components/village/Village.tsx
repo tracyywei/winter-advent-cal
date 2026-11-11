@@ -1,24 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useCallback, useState } from "react";
-import { CAL_YEAR, TOTAL_DAYS } from "@/lib/time";
+import { useCallback, useRef, useState } from "react";
+import { ALL_OPEN_DAY, CAL_YEAR, TOTAL_ORNAMENTS, type Season } from "@/lib/time";
 import type { PublicDoorResponse } from "@/lib/types";
 import "./village.css";
 import { postJSON, type Api, type Post } from "./DoorBody";
-import DoorReveal, { type LoadDoor } from "./DoorReveal";
-import { CuteHouse, CuteTree, type HouseState } from "./houses";
+import DoorReveal, { LOCK_TOAST, type LoadDoor } from "./DoorReveal";
 import ReminderSheet from "./ReminderSheet";
 import Snow from "./Snow";
+import { ORNAMENT_SPOTS, Ornament, TreeArt, type OrnamentState } from "./tree";
 import { useToast } from "./useToast";
 
-type VillageProps = {
+type TreeProps = {
   slug: string;
   recipientName: string;
   fromName: string;
-  /** Highest door number unlocked right now, computed on the server. */
-  unlockedThrough: number;
+  /** Computed on the server: before December, during it, or from Dec 31 when everything is open. */
+  season: Season;
   openedDays: number[];
+  /** They already opened a new ornament today, so the others wait until tomorrow. */
+  usedToday: boolean;
   /** Pretend date (dev or owner preview), forwarded to API calls so they agree with the page. */
   nowOverride: string | null;
   /** The studio owner is looking: show the preview bar. Visits aren't recorded. */
@@ -32,11 +34,21 @@ const STARS = (() => {
   return Array.from({ length: 46 }, () => ({ big: rnd() > 0.85, left: rnd() * 100, top: rnd() * 100, delay: rnd() * 3 }));
 })();
 
-export default function Village({ slug, recipientName, fromName, unlockedThrough, openedDays, nowOverride, preview }: VillageProps) {
+const PRETEND_DAYS = [
+  { value: `${CAL_YEAR}-11-30`, label: "Nov 30 (before)" },
+  ...Array.from({ length: ALL_OPEN_DAY }, (_, i) => ({
+    value: `${CAL_YEAR}-12-${String(i + 1).padStart(2, "0")}`,
+    label: i + 1 === ALL_OPEN_DAY ? `Dec ${i + 1} (all open)` : `Dec ${i + 1}`,
+  })),
+];
+
+export default function Village({ slug, recipientName, fromName, season, openedDays, usedToday: usedTodayInitial, nowOverride, preview }: TreeProps) {
   const [opened, setOpened] = useState(() => new Set(openedDays));
-  const [openDay, setOpenDay] = useState<number | null>(null);
+  const [usedToday, setUsedToday] = useState(usedTodayInitial);
+  const [openN, setOpenN] = useState<number | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [wiggle, setWiggle] = useState<{ day: number; n: number } | null>(null);
+  const [wiggle, setWiggle] = useState<{ n: number; times: number } | null>(null);
+  const opensNew = useRef(false);
   const { toast, toastEl } = useToast();
 
   const api = useCallback<Api>(
@@ -45,59 +57,54 @@ export default function Village({ slug, recipientName, fromName, unlockedThrough
   );
   const post = useCallback<Post>((path, body) => postJSON(api(path), body), [api]);
   const load = useCallback<LoadDoor>(
-    async (day) => {
-      const res = await fetch(api(`/door/${day}`), { cache: "no-store" });
-      if (res.status === 423) return "locked";
+    async (n) => {
+      const res = await fetch(api(`/door/${n}`), { cache: "no-store" });
+      if (res.status === 423) {
+        const body = (await res.json().catch(() => ({}))) as { reason?: keyof typeof LOCK_TOAST };
+        return { locked: body.reason ?? "not_yet" };
+      }
       if (!res.ok) throw new Error(String(res.status));
       return (await res.json()) as PublicDoorResponse;
     },
     [api],
   );
-  const markOpened = useCallback((day: number) => setOpened((prev) => new Set(prev).add(day)), []);
-  const closeDoor = useCallback(() => setOpenDay(null), []);
+  const markOpened = useCallback(
+    (n: number) => {
+      setOpened((prev) => new Set(prev).add(n));
+      // Opening a new one uses up today's ornament (your previews don't count).
+      if (opensNew.current && season === "december" && !preview) setUsedToday(true);
+    },
+    [season, preview],
+  );
+  const closeOrnament = useCallback(() => setOpenN(null), []);
   const closeSheet = useCallback(() => setSheetOpen(false), []);
 
-  const stateOf = (d: number): HouseState => (d > unlockedThrough ? "locked" : opened.has(d) ? "opened" : "ready");
+  const lockedFor = (n: number) =>
+    opened.has(n) || season === "all_open" ? null : season === "before" ? "not_yet" : usedToday ? "one_a_day" : null;
 
-  const onHouse = (d: number) => {
-    if (d > unlockedThrough) {
-      setWiggle({ day: d, n: (wiggle?.n ?? 0) + 1 });
-      toast(`No peeking! 👀 Door ${d} opens Dec ${d}`);
+  const stateOf = (n: number): OrnamentState => (opened.has(n) ? "opened" : lockedFor(n) ? "locked" : "ready");
+
+  const onOrnament = (n: number) => {
+    const reason = lockedFor(n);
+    if (reason) {
+      setWiggle({ n, times: (wiggle?.times ?? 0) + 1 });
+      toast(LOCK_TOAST[reason]);
       return;
     }
-    setOpenDay(d);
+    opensNew.current = !opened.has(n);
+    setOpenN(n);
   };
 
-  const house = (d: number) => {
-    const st = stateOf(d);
-    const big = d === TOTAL_DAYS;
-    const wiggling = wiggle?.day === d;
-    return (
-      <button
-        key={d}
-        type="button"
-        className={`va-house ${st}${big ? " big" : ""}${wiggling ? " wiggle" : ""}`}
-        onClick={() => onHouse(d)}
-        aria-label={st === "locked" ? `Door ${d}, opens December ${d}` : `Open door ${d}`}
-      >
-        {/* Re-keying restarts the wiggle animation on repeated taps. */}
-        <span className="art" key={wiggling ? wiggle.n : 0}>
-          {big ? <CuteTree /> : <CuteHouse day={d} state={st} />}
-        </span>
-      </button>
-    );
-  };
-
-  const todayOpened = unlockedThrough > 0 && opened.has(unlockedThrough);
-  const status =
-    unlockedThrough === 0
-      ? "Your first door opens December 1 ❄️"
-      : unlockedThrough >= TOTAL_DAYS
-        ? "Merry Christmas! 🎄 Every door is open."
-        : todayOpened
-          ? `Come back tomorrow for door ${unlockedThrough + 1} ✨`
-          : `Door ${unlockedThrough} is ready for you ✨`;
-  const nextDay = Math.min(unlockedThrough + 1, TOTAL_DAYS);
+  const finished = opened.size >= TOTAL_ORNAMENTS;
+  const status = finished
+    ? "You opened all 12! Merry Christmas 🎄"
+    : season === "before"
+      ? "Your tree lights up December 1 ❄️ Then open one ornament a day, any one you like."
+      : season === "all_open"
+        ? "Every ornament is open now. Catch up on any you missed ✨"
+        : usedToday
+          ? "That's today's ornament! Come back tomorrow for another ✨"
+          : "Pick any ornament to open today ✨ (one a day)";
 
   return (
     <div className="va">
@@ -108,14 +115,11 @@ export default function Village({ slug, recipientName, fromName, unlockedThrough
             Pretend it&apos;s{" "}
             <select value={nowOverride ?? ""} onChange={(e) => window.location.assign(e.target.value ? `?now=${e.target.value}` : "?")}>
               <option value="">today</option>
-              {Array.from({ length: TOTAL_DAYS }, (_, i) => {
-                const d = `${CAL_YEAR}-12-${String(i + 1).padStart(2, "0")}`;
-                return (
-                  <option key={d} value={d}>
-                    Dec {i + 1}
-                  </option>
-                );
-              })}
+              {PRETEND_DAYS.map((d) => (
+                <option key={d.value} value={d.value}>
+                  {d.label}
+                </option>
+              ))}
             </select>
           </label>
           <Link href="/studio">← Studio</Link>
@@ -132,55 +136,67 @@ export default function Village({ slug, recipientName, fromName, unlockedThrough
         <header className="va-hero">
           <div className="va-moon" aria-hidden="true" />
           <p className="va-eyebrow">from {fromName}, with love</p>
-          <h1>{recipientName}&apos;s Advent Village</h1>
+          <h1>{recipientName}&apos;s Advent Tree</h1>
           <p className="va-status">{status}</p>
           <div className="va-progress">
             <div className="bar">
-              <span style={{ width: `${(opened.size / TOTAL_DAYS) * 100}%` }} />
+              <span style={{ width: `${(opened.size / TOTAL_ORNAMENTS) * 100}%` }} />
             </div>
             <span>
-              {opened.size}/{TOTAL_DAYS} opened
+              {opened.size}/{TOTAL_ORNAMENTS} opened
             </span>
           </div>
-          {unlockedThrough < TOTAL_DAYS && (
+          {season !== "all_open" && !finished && (
             <button type="button" className="va-bell" onClick={() => setSheetOpen(true)}>
-              🔔 Get a daily text
+              🔔 Get a morning text
             </button>
           )}
         </header>
 
-        <main>
-          {[0, 1, 2, 3].map((r) => (
-            <Fragment key={r}>
-              <div className="va-row">{[1, 2, 3, 4, 5, 6].map((i) => house(r * 6 + i))}</div>
-              <div className="va-ground" />
-            </Fragment>
-          ))}
-          <div className="va-finale">{house(TOTAL_DAYS)}</div>
-          <div className="va-ground last" />
+        <main className="va-tree">
+          <TreeArt finished={finished} />
+          {ORNAMENT_SPOTS.map(([x, y], i) => {
+            const n = i + 1;
+            const st = stateOf(n);
+            const wiggling = wiggle?.n === n;
+            return (
+              <button
+                key={n}
+                type="button"
+                className={`va-orn ${st}${wiggling ? " wiggle" : ""}`}
+                style={{ left: `${(x / 300) * 100}%`, top: `${(y / 420) * 100}%` }}
+                onClick={() => onOrnament(n)}
+                aria-label={st === "opened" ? `Ornament ${n}, opened` : st === "locked" ? `Ornament ${n}, not yet` : `Open ornament ${n}`}
+              >
+                {/* Re-keying restarts the wiggle animation on repeated taps. */}
+                <span className="art" key={wiggling ? wiggle.times : 0}>
+                  <Ornament n={n} state={st} />
+                </span>
+              </button>
+            );
+          })}
         </main>
       </div>
+      <div className="va-snowbank" />
 
       <p className="va-foot">
         made with ♥ by {fromName} · December {CAL_YEAR}
       </p>
 
-      {openDay !== null && (
+      {openN !== null && (
         <DoorReveal
-          key={openDay}
-          day={openDay}
+          key={openN}
+          day={openN}
           load={load}
           post={post}
-          firstTime={!opened.has(openDay)}
+          firstTime={!opened.has(openN)}
           fromName={fromName}
           toast={toast}
           onOpened={markOpened}
-          onClose={closeDoor}
+          onClose={closeOrnament}
         />
       )}
-      {sheetOpen && (
-        <ReminderSheet api={api} slug={slug} recipientName={recipientName} fromName={fromName} nextDay={nextDay} onClose={closeSheet} />
-      )}
+      {sheetOpen && <ReminderSheet api={api} slug={slug} recipientName={recipientName} fromName={fromName} onClose={closeSheet} />}
       {toastEl}
     </div>
   );

@@ -5,12 +5,12 @@ import { Suspense } from "react";
 import Village from "@/components/village/Village";
 import "@/components/village/village.css";
 import { isStudioAuthed } from "@/lib/auth";
-import { isDev } from "@/lib/doors";
+import { isDev, openedToday } from "@/lib/doors";
 import { store } from "@/lib/store";
-import { resolveNow, unlockedThrough } from "@/lib/time";
+import { resolveNow, season } from "@/lib/time";
 
 export const metadata: Metadata = {
-  title: "Your Advent Village 🎄",
+  title: "Your Advent Tree 🎄",
   robots: { index: false, follow: false },
 };
 
@@ -31,7 +31,7 @@ export default function CalendarPage({ params, searchParams }: PageProps<"/c/[sl
 }
 
 async function CalendarLoader({ params, searchParams }: PageProps<"/c/[slug]">) {
-  await connection(); // Always render per request: which doors are open depends on the date.
+  await connection(); // Always render per request: which ornaments can open depends on the date.
   const [{ slug }, query, owner] = await Promise.all([params, searchParams, isStudioAuthed()]);
   const cal = await store.getCalendarBySlug(slug);
   if (!cal) notFound();
@@ -39,13 +39,17 @@ async function CalendarLoader({ params, searchParams }: PageProps<"/c/[slug]">) 
   // Pretend dates (?now=) work in development and for the signed-in studio owner only.
   const nowOverride = (isDev || owner) && typeof query.now === "string" ? query.now : null;
 
+  const now = resolveNow(nowOverride, isDev || owner);
+  const opens = await store.getOpens(cal.id);
+
   return (
     <Village
       slug={cal.slug}
       recipientName={cal.recipientName}
       fromName={cal.fromName}
-      unlockedThrough={unlockedThrough(resolveNow(nowOverride, isDev || owner))}
-      openedDays={await store.getOpenedDays(cal.id)}
+      season={season(now)}
+      openedDays={Object.keys(opens).map(Number)}
+      usedToday={!owner && openedToday(opens, now)}
       nowOverride={nowOverride}
       preview={owner}
     />

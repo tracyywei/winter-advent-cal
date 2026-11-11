@@ -4,7 +4,7 @@ export default function Home() {
       <div className="hm-card">
         <div className="hm-emoji">🎄</div>
         <h1>Advent Calendars from Tracy</h1>
-        <p>If you got a link, open that one. Your village is waiting!</p>
+        <p>If you got a link, open that one. Your advent tree is waiting!</p>
       </div>
     </main>
   );

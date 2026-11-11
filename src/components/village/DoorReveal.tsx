@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import type { PublicDoorResponse } from "@/lib/types";
+import type { LockReason, PublicDoorResponse } from "@/lib/types";
 import DoorBody, { type Post } from "./DoorBody";
+import { ornamentColors } from "./tree";
 import type { Toast } from "./useToast";
 
 type Particle = { id: string; dx: number; dy: number; r: number; delay: number; glyph: string; color: string; size: number };
@@ -27,17 +28,23 @@ function makeBurst(): Particle[] {
   });
 }
 
-/** Loads a door's contents; "locked" if the server says it isn't open yet. Must be a stable function. */
-export type LoadDoor = (day: number) => Promise<PublicDoorResponse | "locked">;
+/** Loads an ornament's contents, or why the server says it can't open yet. Must be a stable function. */
+export type LoadDoor = (day: number) => Promise<PublicDoorResponse | { locked: LockReason }>;
+
+export const LOCK_TOAST: Record<LockReason, string> = {
+  not_yet: "No peeking! 👀 Your tree opens December 1",
+  one_a_day: "One a day! 🎁 Come back tomorrow for another",
+};
 
 type Props = {
   day: number;
   load: LoadDoor;
   post: Post;
-  /** First time opening this door: the swing is slower and more dramatic. */
+  /** First time opening this ornament: the reveal is slower and more dramatic. */
   firstTime: boolean;
   fromName: string;
   toast: Toast;
+  /** Called once contents arrive. Unfilled ornaments ("elves still wrapping") don't count as opened. */
   onOpened?: (day: number) => void;
   onClose: () => void;
 };
@@ -61,7 +68,7 @@ export default function DoorReveal({ day, load, post, firstTime, fromName, toast
     window.setTimeout(() => setBurst([]), 1400);
   }, []);
 
-  // Load the door; it only swings open once its contents have arrived.
+  // Load the ornament; it only pops open once its contents have arrived.
   useEffect(() => {
     let cancelled = false;
     const timers: number[] = [];
@@ -84,13 +91,13 @@ export default function DoorReveal({ day, load, post, firstTime, fromName, toast
     load(day)
       .then((result) => {
         if (cancelled) return;
-        if (result === "locked") {
-          toast(`No peeking! 👀 Door ${day} opens Dec ${day}`);
+        if ("locked" in result) {
+          toast(LOCK_TOAST[result.locked]);
           close();
           return;
         }
         setDoor(result);
-        onOpened?.(day);
+        if (result.content.kind !== "empty") onOpened?.(day);
         swing();
       })
       .catch(() => {
@@ -118,6 +125,7 @@ export default function DoorReveal({ day, load, post, firstTime, fromName, toast
     };
   }, [close]);
 
+  const [c1, c2] = ornamentColors(day);
   const stageClass = ["va-stage", phase === "loading" && "loading", phase !== "loading" && "open", phase === "open" && "done"]
     .filter(Boolean)
     .join(" ");
@@ -127,7 +135,7 @@ export default function DoorReveal({ day, load, post, firstTime, fromName, toast
       className={`va-overlay${show ? " show" : ""}`}
       role="dialog"
       aria-modal="true"
-      aria-label={`Door ${day}`}
+      aria-label={`Ornament ${day}`}
       onClick={(e) => e.target === e.currentTarget && close()}
     >
       <div className={stageClass}>
@@ -138,7 +146,7 @@ export default function DoorReveal({ day, load, post, firstTime, fromName, toast
               <h3>Oops, the elves dropped this one</h3>
               <p className="va-small">Check your connection and try again.</p>
               <button type="button" className="va-btn" onClick={close}>
-                Back to the village
+                Back to the tree
               </button>
             </div>
           ) : (
@@ -146,13 +154,17 @@ export default function DoorReveal({ day, load, post, firstTime, fromName, toast
           )}
         </div>
 
-        <div className="va-door" aria-hidden="true">
-          <div className="va-door-inner">
-            <div className="va-wreath">
-              <div className="va-door-dec">Dec</div>
-              <div className="va-door-num">{day}</div>
-            </div>
-            <div className="va-knob" />
+        <div className="va-bauble" aria-hidden="true" style={{ "--c1": c1, "--c2": c2 } as CSSProperties}>
+          <div className="va-bauble-top">
+            <div className="cap" />
+            <div className="half" />
+          </div>
+          <div className="va-bauble-bot">
+            <div className="half" />
+          </div>
+          <div className="va-bauble-label">
+            <span>No.</span>
+            <b>{day}</b>
           </div>
         </div>
 

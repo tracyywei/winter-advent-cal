@@ -8,7 +8,6 @@ type Props = {
   slug: string;
   recipientName: string;
   fromName: string;
-  nextDay: number;
   onClose: () => void;
 };
 
@@ -21,7 +20,7 @@ function formatPhone(input: string) {
   return d;
 }
 
-export default function ReminderSheet({ api, slug, recipientName, fromName, nextDay, onClose }: Props) {
+export default function ReminderSheet({ api, slug, recipientName, fromName, onClose }: Props) {
   const [mode, setMode] = useState<"sms" | "email">("sms");
   const [value, setValue] = useState("");
   const [consent, setConsent] = useState(false);
@@ -69,7 +68,7 @@ export default function ReminderSheet({ api, slug, recipientName, fromName, next
 
   return (
     <div className="va-sheet-wrap" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="va-sheet" role="dialog" aria-modal="true" aria-label="Daily reminders">
+      <div className="va-sheet" role="dialog" aria-modal="true" aria-label="Morning reminders">
         <button type="button" className="va-x" onClick={onClose} aria-label="Close">
           ✕
         </button>
@@ -78,21 +77,21 @@ export default function ReminderSheet({ api, slug, recipientName, fromName, next
           <>
             <h3>You&apos;re on the list! 🎄</h3>
             <p>
-              Look out for {mode === "sms" ? "a text" : "an email"} from {fromName} at 9am PT each morning, Dec 1–25.
+              Look out for {mode === "sms" ? "a text" : "an email"} from {fromName} at 9am PT on December mornings.
             </p>
             <button type="button" className="va-btn big" onClick={onClose}>
-              Back to the village
+              Back to the tree
             </button>
           </>
         ) : (
           <>
-            <h3>🔔 Daily door reminders</h3>
+            <h3>🔔 Morning reminders</h3>
             <p>
-              {fromName} will send you a little nudge at 9am PT every morning when your next door is ready.
+              {fromName} will send you a little nudge at 9am PT on December mornings, so you never miss an ornament.
             </p>
             <div className="va-bubble-from">Here&apos;s what it&apos;ll look like:</div>
             <div className="va-bubble">
-              Good morning {recipientName}! Door #{nextDay} on {fromName}&apos;s advent calendar for you is ready 🎄{" "}
+              Good morning {recipientName}! A new ornament is waiting on your advent tree from {fromName} 🎄{" "}
               <span>
                 {host}/c/{slug}
               </span>
@@ -115,7 +114,7 @@ export default function ReminderSheet({ api, slug, recipientName, fromName, next
                 <label className="va-consent">
                   <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
                   <span>
-                    Yes, {fromName} can text me each morning Dec 1–25. Just let {fromName} know if you&apos;d like to stop.
+                    Yes, {fromName} can text me on December mornings. Just let {fromName} know if you&apos;d like to stop.
                   </span>
                 </label>
               )}

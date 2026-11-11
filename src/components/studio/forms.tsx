@@ -28,7 +28,7 @@ export function NewCalendarForm() {
     <form action={action} className="st-row">
       <input className="st-input grow" name="recipientName" placeholder="Who's it for? e.g. Mom" maxLength={40} required aria-label="Recipient name" />
       <button className="st-btn" disabled={pending}>
-        {pending ? "Building…" : "＋ New village"}
+        {pending ? "Planting…" : "＋ New tree"}
       </button>
       {state?.error && <p className="st-error">{state.error}</p>}
     </form>

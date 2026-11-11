@@ -49,7 +49,7 @@ export default function DoorBody({
   return (
     <>
       <div className="va-card-head">
-        <span className="va-chip">Dec {door.day}</span>
+        <span className="va-chip">Ornament {door.day}</span>
         <span className="va-kind">{KIND_LABEL[c.kind]}</span>
       </div>
 

@@ -69,7 +69,7 @@
 .st-cal-card { display: flex; flex-direction: column; gap: 10px; }
 .st-pill { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 99px; background: var(--blush); color: var(--berry); }
 .st-pill.done { background: var(--sage); color: var(--pine); }
-.st-dots { display: grid; grid-template-columns: repeat(13, 1fr); gap: 4px; max-width: 260px; }
+.st-dots { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; max-width: 240px; }
 .st-dots i { aspect-ratio: 1; border-radius: 50%; background: var(--line); }
 .st-dots i.f { background: var(--berry); }
 .st-dots i.o { box-shadow: 0 0 0 2px var(--gold); }
@@ -85,7 +85,7 @@
   .st-editor-layout { grid-template-columns: 380px 1fr; }
   .st-doors { position: sticky; top: 16px; }
 }
-.st-door-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 10px; max-width: 460px; }
+.st-door-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; max-width: 460px; }
 .st-tile { position: relative; height: 60px;border-radius: 14px; border: 2px dashed #ddd3c4; background: var(--card); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2px; transition: transform 0.1s; }
 .st-tile:hover { transform: translateY(-1px); }
 .st-tile.filled { border-style: solid; border-color: #b9d3c1; background: var(--sage); }

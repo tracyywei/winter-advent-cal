@@ -38,28 +38,31 @@
 .va-bell { cursor: pointer; font-weight: 600; font-size: 14px; padding: 10px 18px; border: 0; border-radius: 99px; background: #fff; color: var(--plum); box-shadow: 0 4px 0 #e6b3d0, 0 8px 20px rgba(80, 30, 90, 0.25); }
 .va-bell:active { transform: translateY(2px); box-shadow: 0 2px 0 #e6b3d0, 0 4px 10px rgba(80, 30, 90, 0.25); }
 
-/* ---------- village ---------- */
-.va-row { display: grid; grid-template-columns: repeat(6, 1fr); align-items: end; padding: 18px 10px 0; position: relative; z-index: 1; }
-.va-ground { position: relative; height: 22px; background: #fff; border-radius: 50% 50% 0 0 / 100% 100% 0 0; margin: -14px calc(50% - 50vw) 0; }
-.va-ground.last { height: 44px; }
-.va-finale { display: flex; justify-content: center; padding-top: 26px; position: relative; z-index: 1; }
-.va-house { appearance: none; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; position: relative; color: inherit; -webkit-tap-highlight-color: transparent; }
-.va-house .art { display: block; width: 100%; max-width: 60px; transition: transform 0.15s; }
-.va-house .art svg { display: block; width: 100%; height: auto; overflow: visible; }
-.va-house:hover .art { transform: translateY(-3px); }
-.va-house:focus-visible { outline: 2px dashed #ffd66b; outline-offset: 3px; border-radius: 8px; }
-.va-house.ready .art { animation: va-glow 1.6s ease-in-out infinite; }
+/* ---------- tree ---------- */
+.va-tree { position: relative; z-index: 1; display: block; width: min(100% - 24px, 400px); aspect-ratio: 300 / 420; margin: 6px auto 0; }
+.va-tree > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.va-tree-star { transform-origin: 150px 36px; }
+.va-tree-star.lit { animation: va-star 1.8s ease-in-out infinite; }
+@keyframes va-star {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(255, 214, 107, 0.7)); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 16px rgb(255, 214, 107)); transform: scale(1.12); }
+}
+.va-orn { position: absolute; width: 15%; transform: translate(-50%, -60%); appearance: none; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; color: inherit; -webkit-tap-highlight-color: transparent; }
+.va-orn .art { display: block; transform-origin: 50% 4%; transition: transform 0.15s; }
+.va-orn svg { display: block; width: 100%; height: auto; overflow: visible; }
+.va-orn:hover .art { transform: rotate(-7deg); }
+.va-orn:focus-visible { outline: 2px dashed #ffd66b; outline-offset: 3px; border-radius: 50%; }
+.va-orn.ready .art { animation: va-glow 1.6s ease-in-out infinite; }
 @keyframes va-glow {
   0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 214, 107, 0.6)); }
-  50% { filter: drop-shadow(0 0 12px rgb(255, 214, 107)); }
+  50% { filter: drop-shadow(0 0 10px rgb(255, 214, 107)); }
 }
-.va-house.ready::before { content: "✨"; position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-size: 15px; animation: va-bob 1s ease-in-out infinite; pointer-events: none; }
-@keyframes va-bob { 50% { transform: translate(-50%, -4px); } }
-.va-house.wiggle .art { animation: va-wiggle 0.45s; }
-@keyframes va-wiggle { 20% { transform: rotate(-8deg); } 40% { transform: rotate(7deg); } 60% { transform: rotate(-5deg); } 80% { transform: rotate(3deg); } }
-.va-house.locked:not(.big) .art { filter: saturate(0.8); }
-.va-house.big .art { width: 150px; max-width: none; }
-.va-house.big.locked .art { filter: saturate(0.35) brightness(0.75); }
+.va-orn.ready::before { content: "✨"; position: absolute; top: -10px; right: -8px; font-size: 13px; animation: va-bob 1s ease-in-out infinite; pointer-events: none; }
+@keyframes va-bob { 50% { transform: translateY(-4px); } }
+.va-orn.locked .art { filter: saturate(0.6) brightness(0.85); }
+.va-orn.wiggle .art { animation: va-wiggle 0.5s; }
+@keyframes va-wiggle { 20% { transform: rotate(-14deg); } 40% { transform: rotate(11deg); } 60% { transform: rotate(-7deg); } 80% { transform: rotate(4deg); } }
+.va-snowbank { position: relative; z-index: 1; height: 46px; margin-top: -40px; background: #fff; border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
 .va-foot { position: relative; z-index: 1; text-align: center; margin: 0; padding: 24px 16px 44px; background: #fff; color: #b07ab8; font-size: 13px; }
 
 /* ---------- door reveal ---------- */
@@ -70,21 +73,28 @@
 .va-stage::before { content: ""; position: absolute; inset: -50px; background: radial-gradient(closest-side, rgba(255, 220, 130, 0.8), rgba(255, 220, 130, 0)); opacity: 0; transition: opacity 0.7s; pointer-events: none; }
 .va-stage.open::before { opacity: 1; }
 .va-stage.done::before { opacity: 0.3; }
-.va-stage.loading .va-door { animation: va-rattle 1.2s ease-in-out 0.8s infinite; }
-@keyframes va-rattle { 0%, 100% { transform: none; } 10% { transform: rotate(-1deg); } 20% { transform: rotate(1deg); } 30% { transform: none; } }
+.va-stage.loading .va-bauble { animation: va-sway 1.4s ease-in-out 0.6s infinite; }
+@keyframes va-sway { 0%, 100% { rotate: 0deg; } 25% { rotate: -4deg; } 75% { rotate: 4deg; } }
 .va-card { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; opacity: 0; transform: scale(0.94); transition: opacity 0.45s 0.3s, transform 0.45s 0.3s; background: #fffaf6; color: var(--ink); border-radius: 28px; box-shadow: 0 18px 40px rgba(40, 10, 60, 0.35); font-size: 15px; line-height: 1.45; padding: 22px 20px; }
 .va-stage.open .va-card { opacity: 1; transform: none; }
-.va-door { position: absolute; inset: 0; z-index: 2; transform-origin: left center; transition: transform 1s cubic-bezier(0.6, 0.02, 0.25, 1), opacity 0.35s; background: linear-gradient(90deg, #d08463, #b8674b); border-radius: 160px 160px 26px 26px; box-shadow: 0 14px 34px rgba(40, 10, 60, 0.45), inset 0 0 0 9px #a65a42; }
-.va-stage.open .va-door { transform: rotateY(-108deg); }
-.va-stage.done .va-door { opacity: 0; pointer-events: none; }
-.va-door-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.va-door-inner::before { content: ""; position: absolute; left: 17%; right: 17%; top: 58%; bottom: 8%; border-radius: 18px; background: rgba(0, 0, 0, 0.08); box-shadow: inset 0 0 0 4px rgba(0, 0, 0, 0.06); }
-.va-wreath { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 156px; height: 156px; border-radius: 50%; border: 24px solid #5fb68a; box-shadow: inset 0 0 0 4px #4a9e75, 0 0 0 4px #4a9e75, 0 8px 18px rgba(0, 0, 0, 0.2); margin-top: -70px; }
-.va-wreath::before { content: ""; position: absolute; inset: -24px; border-radius: 50%; background: radial-gradient(circle at 18% 30%, #ff6b8b 0 5px, transparent 6px), radial-gradient(circle at 80% 22%, #ff6b8b 0 5px, transparent 6px), radial-gradient(circle at 88% 66%, #ffe08a 0 5px, transparent 6px), radial-gradient(circle at 12% 72%, #ffe08a 0 5px, transparent 6px), radial-gradient(circle at 50% 6%, #ff6b8b 0 5px, transparent 6px); }
-.va-wreath::after { content: "🎀"; position: absolute; bottom: -42px; font-size: 36px; }
-.va-door-dec { font-weight: 700; font-size: 16px; color: #fff; line-height: 1; }
-.va-door-num { font-weight: 800; font-size: 44px; color: #fff; line-height: 1; text-shadow: 0 3px 0 rgba(0, 0, 0, 0.2); }
-.va-knob { position: absolute; right: 11%; top: 62%; width: 18px; height: 18px; border-radius: 50%; background: #ffd66b; box-shadow: inset -3px -3px 0 #e0b43f; }
+/* The big ornament that splits in half to reveal the card. */
+.va-bauble { position: absolute; left: 50%; top: 50%; z-index: 2; width: 220px; height: 250px; margin: -135px 0 0 -110px; transform-origin: 50% 0; pointer-events: none; }
+.va-bauble-top, .va-bauble-bot { position: absolute; left: 0; right: 0; transition: transform 1s cubic-bezier(0.6, 0.02, 0.25, 1), opacity 0.45s 0.45s; }
+.va-bauble-top { top: 0; height: 140px; }
+.va-bauble-bot { top: 140px; height: 110px; }
+.va-bauble .half { position: absolute; left: 0; width: 220px; height: 110px; overflow: hidden; filter: drop-shadow(0 14px 22px rgba(40, 10, 60, 0.35)); }
+.va-bauble-top .half { top: 30px; }
+.va-bauble .half::before { content: ""; position: absolute; left: 0; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(ellipse 15% 10% at 30% 26%, rgba(255, 255, 255, 0.8), transparent), linear-gradient(transparent 45%, rgba(255, 255, 255, 0.6) 45% 55%, transparent 55%), radial-gradient(circle at 38% 32%, var(--c1), var(--c2) 78%); }
+.va-bauble-top .half::before { top: 0; }
+.va-bauble-bot .half::before { bottom: 0; }
+.va-bauble .cap { position: absolute; left: 50%; top: 6px; width: 58px; height: 28px; margin-left: -29px; border-radius: 8px 8px 4px 4px; background: repeating-linear-gradient(90deg, #f3c34a 0 7px, #e0a92f 7px 10px); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.12); }
+.va-bauble .cap::before { content: ""; position: absolute; left: 50%; top: -16px; width: 22px; height: 22px; margin-left: -11px; border: 4px solid #f3c34a; border-radius: 50%; }
+.va-bauble-label { position: absolute; left: 0; right: 0; top: 140px; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; color: #fff; line-height: 1; text-shadow: 0 3px 0 rgba(0, 0, 0, 0.18); transition: opacity 0.25s; }
+.va-bauble-label span { font-weight: 700; font-size: 16px; }
+.va-bauble-label b { font-weight: 800; font-size: 52px; }
+.va-stage.open .va-bauble-top { transform: translate(-40px, -200px) rotate(-28deg); opacity: 0; }
+.va-stage.open .va-bauble-bot { transform: translate(34px, 210px) rotate(18deg); opacity: 0; }
+.va-stage.open .va-bauble-label { opacity: 0; }
 .va-burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; z-index: 3; pointer-events: none; }
 .va-p { position: absolute; left: 0; top: 0; animation: va-fly 1s ease-out forwards; }
 @keyframes va-fly {

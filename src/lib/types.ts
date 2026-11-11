@@ -67,3 +67,6 @@ export type Subscription = {
 
 export const REACTION_EMOJIS = ["🥹", "😂", "❤️", "🎄", "✨", "😭"] as const;
 export const MAX_NOTE_LENGTH = 280;
+
+/** Why an ornament can't be opened yet: before December, or a new one was already opened today. */
+export type LockReason = "not_yet" | "one_a_day";

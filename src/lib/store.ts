@@ -77,15 +77,18 @@ export const store = {
     return row ? toCalendar(row as CalendarRow) : null;
   },
 
-  async getOpenedDays(calendarId: string): Promise<number[]> {
-    const rows = list(await db().from("opens").select("day").eq("calendar_id", calendarId), "load opens");
-    return rows.map((r) => r.day as number);
+  /** First-open time of each opened ornament. */
+  async getOpens(calendarId: string): Promise<Record<number, string>> {
+    const rows = list(await db().from("opens").select("day, first_opened_at").eq("calendar_id", calendarId), "load opens");
+    return Object.fromEntries(rows.map((r) => [r.day as number, r.first_opened_at as string]));
   },
 
-  async recordOpen(calendarId: string, day: number) {
-    // Keeps the first open time: a second open is ignored.
+  /** Keeps the first open time: a second open is ignored. `at` is a pretend time in development. */
+  async recordOpen(calendarId: string, day: number, at: Date) {
     check(
-      await db().from("opens").upsert({ calendar_id: calendarId, day }, { onConflict: "calendar_id,day", ignoreDuplicates: true }),
+      await db()
+        .from("opens")
+        .upsert({ calendar_id: calendarId, day, first_opened_at: at.toISOString() }, { onConflict: "calendar_id,day", ignoreDuplicates: true }),
       "record open",
     );
   },
