@@ -6,7 +6,7 @@ import { NewCalendarForm } from "@/components/studio/forms";
 import MorningTexts from "@/components/studio/MorningTexts";
 import { requireStudio } from "@/lib/auth";
 import { store } from "@/lib/store";
-import { CAL_TZ, CAL_YEAR, TOTAL_DAYS, unlockedThrough } from "@/lib/time";
+import { CAL_TZ, CAL_YEAR, season, TOTAL_ORNAMENTS } from "@/lib/time";
 import { logout } from "./actions";
 
 const when = new Intl.DateTimeFormat("en-US", { timeZone: CAL_TZ, month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -27,9 +27,13 @@ async function Dashboard() {
 
   const now = new Date();
   const daysToGo = Math.ceil((new Date(`${CAL_YEAR}-12-01T00:00:00-08:00`).getTime() - now.getTime()) / 86_400_000);
-  const today = unlockedThrough(now);
+  const s = season(now);
   const countdown =
-    daysToGo > 0 ? `${daysToGo} day${daysToGo === 1 ? "" : "s"} until the first door opens` : today < TOTAL_DAYS ? `Door ${today} is open today` : "Merry Christmas! 🎄";
+    s === "before"
+      ? `${daysToGo} day${daysToGo === 1 ? "" : "s"} until the trees light up`
+      : s === "december"
+        ? "Trees are open: one ornament a day"
+        : "Every ornament is open now 🎄";
 
   const feed = calendars
     .flatMap((cal, i) => Object.entries(activity[i].reactions).map(([day, r]) => ({ cal, day: Number(day), r })))
@@ -51,12 +55,12 @@ async function Dashboard() {
       </header>
 
       <section className="st-card">
-        <h2>Start a new village</h2>
+        <h2>Start a new tree</h2>
         <NewCalendarForm />
       </section>
 
       <section>
-        <h2 className="st-section-title">Villages ({calendars.length})</h2>
+        <h2 className="st-section-title">Trees ({calendars.length})</h2>
         {calendars.length === 0 && <p className="st-muted">No calendars yet. Make one above!</p>}
         <div className="st-cal-grid">
           {calendars.map((cal, i) => {
@@ -67,21 +71,21 @@ async function Dashboard() {
               <article key={cal.id} className="st-card st-cal-card">
                 <div className="st-row space">
                   <h3>{cal.recipientName}</h3>
-                  <span className={`st-pill${filled.size === TOTAL_DAYS ? " done" : ""}`}>
-                    {filled.size === TOTAL_DAYS ? "✓ all 25 filled" : `${filled.size}/25 filled`}
+                  <span className={`st-pill${filled.size === TOTAL_ORNAMENTS ? " done" : ""}`}>
+                    {filled.size === TOTAL_ORNAMENTS ? "✓ all 12 filled" : `${filled.size}/12 filled`}
                   </span>
                 </div>
                 <div className="st-dots" aria-hidden="true">
-                  {Array.from({ length: TOTAL_DAYS }, (_, d) => (
+                  {Array.from({ length: TOTAL_ORNAMENTS }, (_, d) => (
                     <i key={d} className={`${filled.has(d + 1) ? "f" : ""}${act.opens[d + 1] ? " o" : ""}`} />
                   ))}
                 </div>
                 <p className="st-muted small">
-                  {opened} opened · {act.subscriptions.length ? "🔔 reminders on" : "no reminders yet"}
+                  {opened}/12 opened · {act.subscriptions.length ? "🔔 reminders on" : "no reminders yet"}
                 </p>
                 <div className="st-row">
                   <Link className="st-btn" href={`/studio/${cal.id}`}>
-                    Fill doors
+                    Fill ornaments
                   </Link>
                   <CopyLinkButton slug={cal.slug} />
                 </div>
@@ -92,7 +96,12 @@ async function Dashboard() {
       </section>
 
       <MorningTexts
-        people={calendars.map((cal, i) => ({ name: cal.recipientName, slug: cal.slug, subscriptions: activity[i].subscriptions }))}
+        people={calendars.map((cal, i) => ({
+          name: cal.recipientName,
+          slug: cal.slug,
+          subscriptions: activity[i].subscriptions,
+          finished: Object.keys(activity[i].opens).length >= TOTAL_ORNAMENTS,
+        }))}
       />
 
       <section className="st-card">
@@ -104,7 +113,7 @@ async function Dashboard() {
             {feed.map(({ cal, day, r }) => (
               <li key={`${cal.id}-${day}`}>
                 <Link href={`/studio/${cal.id}`}>
-                  <b>{cal.recipientName}</b> · Dec {day} {r.emoji} {r.redeemed && "🎟️ redeemed"}
+                  <b>{cal.recipientName}</b> · Ornament {day} {r.emoji} {r.redeemed && "🎟️ redeemed"}
                   {r.note && <q>{r.note}</q>}
                   <span className="st-muted small">{when.format(new Date(r.updatedAt))}</span>
                 </Link>

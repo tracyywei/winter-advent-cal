@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { deleteCalendar, updateNames } from "@/app/studio/actions";
 import type { CalendarActivity } from "@/lib/store";
-import { CAL_YEAR, TOTAL_DAYS } from "@/lib/time";
+import { ALL_OPEN_DAY, CAL_YEAR, TOTAL_ORNAMENTS } from "@/lib/time";
 import type { Calendar } from "@/lib/types";
 import { useToast } from "../village/useToast";
 import CopyLinkButton, { useOrigin } from "./CopyLinkButton";
@@ -15,7 +15,7 @@ type Props = { calendar: Calendar; activity: CalendarActivity };
 
 export default function CalendarEditor({ calendar, activity }: Props) {
   const doors = new Map(calendar.doors.map((d) => [d.day, d]));
-  const firstEmpty = Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1).find((d) => !doors.has(d)) ?? 1;
+  const firstEmpty = Array.from({ length: TOTAL_ORNAMENTS }, (_, i) => i + 1).find((d) => !doors.has(d)) ?? 1;
   const [day, setDay] = useState(firstEmpty);
   const dirty = useRef(false);
   const editorRef = useRef<HTMLElement>(null);
@@ -32,7 +32,7 @@ export default function CalendarEditor({ calendar, activity }: Props) {
 
   const select = (d: number) => {
     if (d === day) return;
-    if (dirty.current && !confirm(`You have unsaved changes on Dec ${day}. Discard them?`)) return;
+    if (dirty.current && !confirm(`You have unsaved changes on ornament ${day}. Discard them?`)) return;
     dirty.current = false;
     setDay(d);
     if (window.innerWidth < 900) requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
@@ -51,10 +51,10 @@ export default function CalendarEditor({ calendar, activity }: Props) {
       <div className="st-editor-layout">
         <section className="st-card st-doors">
           <h2>
-            Doors <small>{calendar.doors.length}/25 filled</small>
+            Ornaments <small>{calendar.doors.length}/12 filled</small>
           </h2>
           <div className="st-door-grid">
-            {Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1).map((d) => {
+            {Array.from({ length: TOTAL_ORNAMENTS }, (_, i) => i + 1).map((d) => {
               const door = doors.get(d);
               const r = activity.reactions[d];
               return (
@@ -63,7 +63,7 @@ export default function CalendarEditor({ calendar, activity }: Props) {
                   type="button"
                   className={`st-tile${door ? " filled" : ""}${d === day ? " sel" : ""}`}
                   onClick={() => select(d)}
-                  aria-label={`Dec ${d}${door ? "" : ", empty"}`}
+                  aria-label={`Ornament ${d}${door ? "" : ", empty"}`}
                   aria-pressed={d === day}
                 >
                   <span className="d">{d}</span>
@@ -118,7 +118,7 @@ function NamesHeader({ calendar, subscribed }: { calendar: Calendar; subscribed:
     });
 
   const remove = () => {
-    const ok = confirm(`Delete ${calendar.recipientName}'s calendar and everything in it (doors, reactions, sign-ups)? This can't be undone.`);
+    const ok = confirm(`Delete ${calendar.recipientName}'s calendar and everything in it (ornaments, reactions, sign-ups)? This can't be undone.`);
     if (ok) startTransition(() => deleteCalendar(calendar.id));
   };
 
@@ -145,7 +145,7 @@ function NamesHeader({ calendar, subscribed }: { calendar: Calendar; subscribed:
       ) : (
         <div className="st-row space">
           <div>
-            <h1>{calendar.recipientName}&apos;s village</h1>
+            <h1>{calendar.recipientName}&apos;s tree</h1>
             <p className="st-muted">
               from {calendar.fromName} ·{" "}
               {subscribed.length ? `🔔 reminders on (${subscribed.join(" + ")})` : "no reminders yet"}{" "}
@@ -164,8 +164,8 @@ function NamesHeader({ calendar, subscribed }: { calendar: Calendar; subscribed:
       </div>
       <div className="st-row">
         <CopyLinkButton slug={calendar.slug} className="st-btn" />
-        <a className="st-btn soft" href={`/c/${calendar.slug}?now=${CAL_YEAR}-12-25`} target="_blank" rel="noreferrer">
-          👀 Preview village
+        <a className="st-btn soft" href={`/c/${calendar.slug}?now=${CAL_YEAR}-12-${ALL_OPEN_DAY}`} target="_blank" rel="noreferrer">
+          👀 Preview tree
         </a>
         <button type="button" className="st-btn ghost danger-text" onClick={remove} disabled={pending}>
           Delete calendar

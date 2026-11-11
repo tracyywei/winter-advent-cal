@@ -1,9 +1,10 @@
 # 🎄 Winter Advent Calendar
 
-A snowy-village advent calendar, Dec 1–25. Tracy fills each person's 25 doors
-in the studio and sends them a secret link. Doors unlock at midnight Pacific.
+A 12-ornament advent tree. Tracy fills each person's 12 ornaments in the studio
+and sends them a secret link. Starting Dec 1 they can open any ornament, one new
+one per day (Pacific time). On Dec 31 everything unlocks so they can catch up.
 
-- **Recipient village:** `/c/<secret-slug>`
+- **Recipient tree:** `/c/<secret-slug>`
 - **Studio** (password login): `/studio`
 
 ## Setup
@@ -22,14 +23,14 @@ npm run dev
 
 | Where | What |
 |---|---|
-| `src/app/c/[slug]` | The village page |
-| `src/app/api/c/[slug]/…` | Door, riddle, reaction and reminder sign-up endpoints. Locked doors return 423 and never send their content. |
+| `src/app/c/[slug]` | The tree page |
+| `src/app/api/c/[slug]/…` | Ornament, riddle, reaction and reminder sign-up endpoints. Locked ornaments return 423 and never send their content. |
 | `src/app/studio` | Studio pages and server actions |
 | `src/app/api/media/[key]` | Redirects to a 1-hour signed link for an uploaded file |
 | `src/lib/store.ts` | All database reads and writes |
-| `src/lib/time.ts` | Unlock rules (Pacific time) |
-| `src/lib/validate.ts` | Checks door content before it's saved |
+| `src/lib/time.ts`, `src/lib/doors.ts` | Unlock rules: December only, one new ornament a day, all open Dec 31 |
+| `src/lib/validate.ts` | Checks ornament content before it's saved |
 
-When you're logged in to the studio, add `?now=2026-12-09` to any village link
-to preview it as of that date. Your previews never count as the recipient
-opening a door.
+When you're logged in to the studio, add `?now=2026-12-09` to any tree link
+to preview it as of that date. Your previews skip the one-a-day rule and never
+count as the recipient opening an ornament.

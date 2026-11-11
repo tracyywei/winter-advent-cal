@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { assertStudio, endSession, passwordMatches, startSession } from "@/lib/auth";
 import { createUpload as makeUpload, type MediaKind } from "@/lib/media";
 import { store } from "@/lib/store";
-import { TOTAL_DAYS } from "@/lib/time";
+import { TOTAL_ORNAMENTS } from "@/lib/time";
 import { MAX_NOTE_LENGTH } from "@/lib/types";
 import { parseDoorContent } from "@/lib/validate";
 
@@ -53,7 +53,7 @@ export async function deleteCalendar(calendarId: string) {
 
 export async function saveDoor(calendarId: string, day: number, content: unknown, note: string) {
   await assertStudio();
-  if (!Number.isInteger(day) || day < 1 || day > TOTAL_DAYS) return { ok: false as const, error: "Bad day" };
+  if (!Number.isInteger(day) || day < 1 || day > TOTAL_ORNAMENTS) return { ok: false as const, error: "Bad day" };
   const parsed = parseDoorContent(content);
   if (!parsed.ok) return { ok: false as const, error: parsed.error };
   const cleanNote = typeof note === "string" ? note.trim().slice(0, MAX_NOTE_LENGTH * 2) : "";

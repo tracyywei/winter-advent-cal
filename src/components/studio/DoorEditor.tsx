@@ -51,18 +51,18 @@ export default function DoorEditor({ calendarId, day, door, recipientName, fromN
       const r = await saveDoor(calendarId, day, fromDraft(draft), note);
       if (!r.ok) return setError(r.error);
       setDirty(false);
-      toast(`Saved Dec ${day} ✨`);
+      toast(`Saved ornament ${day} ✨`);
     });
   };
 
   const clear = () => {
-    if (!confirm(`Empty door ${day}? Its contents will be removed.`)) return;
+    if (!confirm(`Empty ornament ${day}? Its contents will be removed.`)) return;
     startTransition(async () => {
       await clearDoor(calendarId, day);
       setDraft(toDraft(undefined));
       setNote("");
       setDirty(false);
-      toast(`Emptied Dec ${day}`);
+      toast(`Emptied ornament ${day}`);
     });
   };
 
@@ -95,7 +95,7 @@ export default function DoorEditor({ calendarId, day, door, recipientName, fromN
     <div className="st-door-editor">
       <div className="st-door-head">
         <h2>
-          Dec {day}
+          Ornament {day}
           {dirty && <span className="st-dirty">• unsaved</span>}
         </h2>
         <div className="st-activity">
@@ -135,7 +135,7 @@ export default function DoorEditor({ calendarId, day, door, recipientName, fromN
 
       <div className="st-actions">
         <button type="button" className="st-btn" onClick={save} disabled={pending || !draft.kind}>
-          {pending ? "Saving…" : "Save door"}
+          {pending ? "Saving…" : "Save ornament"}
         </button>
         <button type="button" className="st-btn soft" onClick={openPreview} disabled={!draft.kind}>
           👀 Preview
