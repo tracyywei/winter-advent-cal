@@ -34,6 +34,35 @@ export function season(now: Date): Season {
   return day >= ALL_OPEN_DAY ? "all_open" : "december";
 }
 
+/** Minutes `timeZone` is ahead of UTC at `at`. */
+function offsetMinutes(timeZone: string, at: Date): number {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", { timeZone, hourCycle: "h23", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" })
+      .formatToParts(at)
+      .map((x) => [x.type, Number(x.value)]),
+  );
+  return Math.round((Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute) - at.getTime()) / 60000);
+}
+
+/**
+ * The hour on Tracy's phone (Pacific time, 0–23) when it is 9am for someone in
+ * `timeZone` during December. Unknown or missing zones get 9 (9am Pacific).
+ * Half-hour zones round down to the hour before.
+ */
+export function sendHourFor(timeZone: string | undefined): number {
+  if (!timeZone) return 9;
+  try {
+    const ref = new Date(Date.UTC(CAL_YEAR, 11, 10, 12));
+    const diff = offsetMinutes(CAL_TZ, ref) - offsetMinutes(timeZone, ref); // how far Pacific is ahead of them
+    return (((Math.floor((9 * 60 + diff) / 60) % 24) + 24) % 24);
+  } catch {
+    return 9;
+  }
+}
+
+/** "6 AM", "1 PM" */
+export const hourLabel = (h: number) => `${h % 12 || 12} ${h < 12 ? "AM" : "PM"}`;
+
 /**
  * `?now=2026-12-07` pretends it is noon PT on that date. Only honored when
  * `trusted`: in development, or when the studio owner is signed in (preview).

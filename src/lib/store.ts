@@ -143,7 +143,7 @@ export const store = {
   async saveSubscription(calendarId: string, sub: Subscription) {
     check(
       await db().from("subscriptions").upsert(
-        { calendar_id: calendarId, channel: sub.channel, address: sub.address, consented_at: sub.consentedAt, opted_out_at: null },
+        { calendar_id: calendarId, channel: sub.channel, address: sub.address, consented_at: sub.consentedAt, timezone: sub.timezone ?? null, opted_out_at: null },
         { onConflict: "calendar_id,channel" },
       ),
       "save subscription",
@@ -202,13 +202,13 @@ export const store = {
     const [opens, reactions, subs] = await Promise.all([
       db().from("opens").select("day, first_opened_at").eq("calendar_id", calendarId),
       db().from("reactions").select("day, emoji, note, redeemed, updated_at").eq("calendar_id", calendarId),
-      db().from("subscriptions").select("channel, address, consented_at").eq("calendar_id", calendarId).is("opted_out_at", null),
+      db().from("subscriptions").select("channel, address, consented_at, timezone").eq("calendar_id", calendarId).is("opted_out_at", null),
     ]);
     const activity: CalendarActivity = { opens: {}, reactions: {}, subscriptions: [] };
     for (const o of list(opens, "load opens")) activity.opens[o.day] = o.first_opened_at;
     for (const r of list(reactions, "load reactions") as ReactionRow[]) activity.reactions[r.day] = toReaction(r);
     activity.subscriptions = list(subs, "load subscriptions").map(
-      (s): Subscription => ({ channel: s.channel, address: s.address, consentedAt: s.consented_at }),
+      (s): Subscription => ({ channel: s.channel, address: s.address, consentedAt: s.consented_at, timezone: s.timezone ?? undefined }),
     );
     return activity;
   },
