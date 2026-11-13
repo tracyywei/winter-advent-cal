@@ -57,7 +57,13 @@ export default function ReminderSheet({ api, slug, recipientName, fromName, onCl
     }
     setBusy(true);
     try {
-      await postJSON(api("/subscribe"), { channel: mode, address: value, consent: mode === "sms" ? consent : undefined });
+      await postJSON(api("/subscribe"), {
+        channel: mode,
+        address: value,
+        consent: mode === "sms" ? consent : undefined,
+        // So the morning text arrives at 9am where they live.
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
       setDone(true);
     } catch {
       setError("Something went wrong. Try again?");
@@ -77,7 +83,7 @@ export default function ReminderSheet({ api, slug, recipientName, fromName, onCl
           <>
             <h3>You&apos;re on the list! 🎄</h3>
             <p>
-              Look out for {mode === "sms" ? "a text" : "an email"} from {fromName} at 9am PT on December mornings.
+              Look out for {mode === "sms" ? "a text" : "an email"} from {fromName} at 9am your time on December mornings.
             </p>
             <button type="button" className="va-btn big" onClick={onClose}>
               Back to the tree
@@ -87,7 +93,7 @@ export default function ReminderSheet({ api, slug, recipientName, fromName, onCl
           <>
             <h3>🔔 Morning reminders</h3>
             <p>
-              {fromName} will send you a little nudge at 9am PT on December mornings, so you never miss an ornament.
+              {fromName} will send you a little nudge at 9am your time on December mornings, so you never miss an ornament.
             </p>
             <div className="va-bubble-from">Here&apos;s what it&apos;ll look like:</div>
             <div className="va-bubble">

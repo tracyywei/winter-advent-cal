@@ -63,6 +63,8 @@ export type Subscription = {
   /** E.164 phone number (+15551234567) or email address. */
   address: string;
   consentedAt: string;
+  /** IANA time zone from their browser (e.g. "America/New_York"), if known. */
+  timezone?: string;
 };
 
 export const REACTION_EMOJIS = ["🥹", "😂", "❤️", "🎄", "✨", "😭"] as const;

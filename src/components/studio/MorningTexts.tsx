@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { hourLabel, sendHourFor } from "@/lib/time";
 import type { Subscription } from "@/lib/types";
 import { useOrigin } from "./CopyLinkButton";
 
@@ -12,7 +13,8 @@ const prettyPhone = (e164: string) => {
 };
 
 /**
- * The list the owner's iPhone Shortcut reads: one "Name|phone or email|link" line per sign-up.
+ * The list the owner's iPhone Shortcut reads: one "Name|phone or email|link|hour" line per sign-up,
+ * where hour (0–23, the owner's Pacific time) is when it's 9am for that person.
  * People who already opened all 12 ornaments are left out so they stop getting nudges.
  */
 export default function MorningTexts({ people }: { people: Person[] }) {
@@ -20,9 +22,11 @@ export default function MorningTexts({ people }: { people: Person[] }) {
   const [copied, setCopied] = useState(false);
 
   const lines = people.filter((p) => !p.finished).flatMap((p) =>
-    p.subscriptions.map((s) => [p.name.replace(/\|/g, " "), s.address, `${origin}/c/${p.slug}`].join("|")),
+    p.subscriptions.map((s) => [p.name.replace(/\|/g, " "), s.address, `${origin}/c/${p.slug}`, sendHourFor(s.timezone)].join("|")),
   );
   const signedUp = people.filter((p) => p.subscriptions.length > 0).length;
+  // One Shortcut automation per distinct send hour.
+  const hours = [...new Set(people.filter((p) => !p.finished).flatMap((p) => p.subscriptions.map((s) => sendHourFor(s.timezone))))].sort((a, b) => a - b);
 
   const copy = async () => {
     const text = lines.join("\n");
@@ -41,8 +45,8 @@ export default function MorningTexts({ people }: { people: Person[] }) {
         📱 Morning texts <small>{signedUp}/{people.length} signed up</small>
       </h2>
       <p className="st-muted st-texts-intro">
-        Your iPhone Shortcut texts these people at 9am on December mornings. Copy the list into the Shortcut&apos;s
-        Text step, and copy it again now and then: new sign-ups join, and anyone who has opened all 12 drops off.
+        Your iPhone Shortcut texts each person at 9am in their own time zone on December mornings. Copy the list into the
+        Shortcut&apos;s Text step, and copy it again now and then: new sign-ups join, and anyone who has opened all 12 drops off.
       </p>
       {people.length > 0 && (
         <ul className="st-texts">
@@ -57,12 +61,18 @@ export default function MorningTexts({ people }: { people: Person[] }) {
                 p.subscriptions.map((s) => (
                   <span key={s.channel}>
                     {s.channel === "sms" ? `📱 ${prettyPhone(s.address)}` : `✉️ ${s.address}`}
+                    <span className="st-muted small"> · sends {hourLabel(sendHourFor(s.timezone))} your time</span>
                   </span>
                 ))
               )}
             </li>
           ))}
         </ul>
+      )}
+      {hours.length > 0 && (
+        <p className="st-hint st-texts-hours">
+          ⏰ Your Shortcut needs an automation at: <b>{hours.map(hourLabel).join(", ")}</b>
+        </p>
       )}
       <button type="button" className="st-btn" onClick={copy} disabled={lines.length === 0}>
         {copied ? "Copied! ✓" : "📋 Copy list for Shortcut"}

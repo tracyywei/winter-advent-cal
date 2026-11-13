@@ -53,8 +53,10 @@ create table if not exists subscriptions (
   address      text not null,
   consented_at timestamptz not null,
   opted_out_at timestamptz,
+  timezone     text,  -- their phone's time zone, e.g. America/New_York, so texts arrive at 9am their time
   primary key (calendar_id, channel)
 );
+alter table subscriptions add column if not exists timezone text;
 
 -- Every reminder sent, so the daily job never texts the same person twice.
 create table if not exists message_log (
